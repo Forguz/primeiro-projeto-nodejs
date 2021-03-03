@@ -38,7 +38,7 @@ class UpdateUserAvatarService {
 
     await usersRepository.save(user);
 
-    const { password: excludePassword, ...responseUser } = user;
+    const { password: _, ...responseUser } = user;
 
     return responseUser;
   }
