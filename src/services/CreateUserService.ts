@@ -3,6 +3,8 @@ import { hash } from 'bcryptjs';
 
 import User from '../models/User';
 
+import AppError from '../errors/AppError';
+
 interface Request {
   name: string;
   email: string;
@@ -10,15 +12,19 @@ interface Request {
 }
 
 class CreateUserService {
-  public async execute({ name, email, password }: Request): Promise<Omit<User, 'password'>> {
+  public async execute({
+    name,
+    email,
+    password,
+  }: Request): Promise<Omit<User, 'password'>> {
     const usersRepository = getRepository(User);
 
     const checkUserExists = await usersRepository.findOne({
-      where: { email }
+      where: { email },
     });
 
-    if(checkUserExists) {
-      throw new Error('Email address already used.');
+    if (checkUserExists) {
+      throw new AppError('Email address already used.');
     }
 
     const hashedPassword = await hash(password, 8);
@@ -26,12 +32,12 @@ class CreateUserService {
     const user = usersRepository.create({
       name,
       email,
-      password: hashedPassword
-    })
+      password: hashedPassword,
+    });
 
     await usersRepository.save(user);
 
-    const { password: excludePassword, ...responseUser } = user;
+    const { password: _, ...responseUser } = user;
 
     return responseUser;
   }
